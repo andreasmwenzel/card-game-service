@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NestJS test</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+  <div id="v-app">
+    <h1>{{title}}</h1>
+    <form>
+      <input v-model="text" type="text">
+      <button type="submit" @click.prevent="sendMessage()">Send</button>
+    </form>
+
+    <button @click.prevent="connect()">Connect</button>
+    <button @click.prevent="disconnect()">disconnect</button>
+    <input v-model="auth" type="text" name="token" id>
+    <p>
+    <ul>
+      <li v-for="msg of messages">{{ msg }}</li>
+    </ul>
+    </p>
+  </div>
+
+  <script>
+    var app = new Vue({
+      el: '#v-app',
+      data: {
+        title: 'Websocket Testing',
+        text: '',
+        auth: 'hello',
+        messages: ['Some message', 'Another message'],
+        socket: null,
+      },
+      methods: {
+        sendMessage() {
+          this.socket.emit('msgToServer', this.text);
+          this.text = "";
+        },
+        receiveMessage(msg) {
+          console.log(`rec: ${msg}`);
+          this.messages.push(msg)
+        },
+        connect() {
+          socketOptions = {
+            transportOptions: {
+              polling: {
+                extraHeaders: {
+                  Authorization: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvZSIsInN1YiI6MSwiaWF0IjoxNjIzOTY0OTkyLCJleHAiOjE2MjM5NjUwNTJ9.DMcTbERTycS3B2zzlSN3ElColjNZZU1zQxR0yqzYJ6k`, //'Bearer h93t4293t49jt34j9rferek...'
+                }
+              }
+            }
+          };
+          this.socket = io('http://localhost:3000', socketOptions)
+        },
+        disconnect() {
+          this.socket.disconnect();
+        }
+      },
+      created() {
+        this.socket = io('http://localhost:3000')
+        this.socket.on('msgToClient', (msg) => {
+          this.receiveMessage(msg);
+        });
+        this.socket.on('games', (msg) => {
+          console.log(msg);
+        })
+      }
+    })
+  </script>
+</body>
+
+</html>
